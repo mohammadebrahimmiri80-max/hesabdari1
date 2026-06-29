@@ -605,8 +605,8 @@
 // ══════════════════════════════════════════
 //  CONFIG — اینجا مقادیر Supabase رو بذار
 // ══════════════════════════════════════════
-const SUPABASE_URL = 'https://mrzvnhvmfwwkemkgciil.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yenZuaHZtZnd3a2Vta2djaWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjkwODIsImV4cCI6MjA5ODI0NTA4Mn0.VCcWo7NaGTLoFoYKdrmsmlmthlSd57S9OLqXfE4Obbc';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -629,7 +629,11 @@ const TX_BADGE = {
 let authMode = 'login';
 function switchTab(mode) {
   authMode = mode;
-  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='register')));
+  document.querySelectorAll('.auth-tab').forEach(t => {
+    const isLogin = t.textContent.trim() === 'ورود';
+    const isRegister = t.textContent.trim() === 'ثبت‌نام';
+    t.classList.toggle('active', (mode==='login' && isLogin) || (mode==='register' && isRegister));
+  });
   document.getElementById('authBtn').textContent = mode==='login' ? 'ورود' : 'ثبت‌نام';
   document.getElementById('authPassConfirmWrap').style.display = mode==='register' ? 'block' : 'none';
   document.getElementById('forgotWrap').style.display = mode==='login' ? 'block' : 'none';
