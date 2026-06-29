@@ -5,16 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0F2060">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="حسابداری">
-<meta name="description" content="سیستم حسابداری آنلاین">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>سیستم حسابداری</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+
   :root {
     --navy:#0F2060; --navy2:#1A3A8F; --blue:#2952C4; --blue-l:#EEF2FF;
     --green:#145A32; --green-l:#E9F7EF; --red:#922B21; --red-l:#FDEDEC;
@@ -34,7 +31,7 @@
   .auth-logo .icon{font-size:48px;display:block;margin-bottom:10px;}
   .auth-logo h1{font-size:22px;font-weight:800;color:var(--navy);}
   .auth-logo p{font-size:13px;color:var(--text3);margin-top:4px;}
-  .auth-tabs{display:flex;gap:0;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:24px;}
+  .auth-tabs{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px;direction:ltr;}
   .auth-tab{flex:1;padding:10px;text-align:center;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--text3);background:#fff;border:none;font-family:Vazirmatn;transition:all .2s;}
   .auth-tab.active{background:var(--navy);color:#fff;}
   .auth-form{display:flex;flex-direction:column;gap:14px;}
@@ -220,32 +217,46 @@
     .kpi-value{font-size:14px;}
   }
   td.num{font-variant-numeric:tabular-nums;}
+
+/* AUTH OVERRIDE */
+#authScreen{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0F2060,#1A3A8F);z-index:9999;align-items:center;justify-content:center;}
+#authScreen.show{display:flex;}
+.acard{background:#fff;border-radius:20px;padding:36px;width:380px;max-width:94vw;}
+.alogo{text-align:center;margin-bottom:22px;}
+.alogo h1{font-size:21px;font-weight:800;color:#0F2060;margin-top:8px;}
+.alogo p{font-size:12px;color:#999;margin-top:3px;}
+.abtnrow{display:flex;gap:10px;margin-bottom:20px;}
+.abtn{flex:1;padding:11px;border-radius:10px;font-family:Vazirmatn;font-size:14px;font-weight:700;cursor:pointer;border:2px solid #ccc;background:#fff;color:#999;}
+.abtn.sel{background:#0F2060;color:#fff;border-color:#0F2060;}
+.amsg{padding:9px 12px;border-radius:8px;font-size:13px;text-align:center;margin-bottom:12px;display:none;}
+.amsg.err{background:#fde;color:#c00;display:block;}
+.amsg.ok{background:#dfd;color:#060;display:block;}
+.ainp{width:100%;padding:11px 14px;border:2px solid #ddd;border-radius:10px;font-size:14px;font-family:Vazirmatn;margin-bottom:11px;outline:none;direction:ltr;text-align:left;}
+.ainp:focus{border-color:#0F2060;}
+.amainbtn{width:100%;padding:13px;background:#0F2060;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:Vazirmatn;}
+.aforgot{text-align:center;margin-top:11px;font-size:12.5px;color:#0F2060;cursor:pointer;}
 </style>
 </head>
 <body>
 
-<!-- ══════════════ AUTH SCREEN ══════════════ -->
-<div id="authScreen">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <span class="icon">📊</span>
+<!-- AUTH -->
+<div id="authScreen" class="show">
+  <div class="acard">
+    <div class="alogo">
+      <div style="font-size:46px;">📊</div>
       <h1>سیستم حسابداری</h1>
       <p>مدیریت مالی و مشتریان</p>
     </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login')">ورود</button>
-      <button class="auth-tab" onclick="switchTab('register')">ثبت‌نام</button>
+    <div class="abtnrow">
+      <button class="abtn sel" id="btnLogin" onclick="goMode('login')">ورود</button>
+      <button class="abtn" id="btnReg" onclick="goMode('reg')">ثبت‌نام</button>
     </div>
-    <div id="authMsg" class="auth-msg"></div>
-    <div class="auth-form" id="authForm">
-      <input type="email" id="authEmail" placeholder="ایمیل" dir="ltr" style="text-align:left;">
-      <input type="password" id="authPass" placeholder="رمز عبور (حداقل ۶ کاراکتر)" dir="ltr" style="text-align:left;">
-      <div id="authPassConfirmWrap" style="display:none;">
-        <input type="password" id="authPassConfirm" placeholder="تکرار رمز عبور" dir="ltr" style="text-align:left;width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:Vazirmatn;font-size:14px;outline:none;">
-      </div>
-      <button class="auth-btn" id="authBtn" onclick="handleAuth()">ورود</button>
-      <div class="auth-divider" id="forgotWrap"><a href="#" onclick="handleForgot()" style="color:var(--blue);text-decoration:none;font-size:12.5px;">فراموشی رمز عبور</a></div>
-    </div>
+    <div id="amsg" class="amsg"></div>
+    <input class="ainp" type="email" id="aEmail" placeholder="ایمیل شما">
+    <input class="ainp" type="password" id="aPass" placeholder="رمز عبور (حداقل ۶ کاراکتر)">
+    <input class="ainp" type="password" id="aPass2" placeholder="تکرار رمز عبور" style="display:none;">
+    <button class="amainbtn" id="aMainBtn" onclick="doLogin()">ورود</button>
+    <div class="aforgot" id="aForgot" onclick="doForgot()">فراموشی رمز عبور</div>
   </div>
 </div>
 
@@ -601,66 +612,50 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script>
-// ══════════════════════════════════════════
-//  CONFIG — اینجا مقادیر Supabase رو بذار
-// ══════════════════════════════════════════
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const SUPABASE_URL = 'https://mrzvnhvmfwwkemkgciil.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yenZuaHZtZnd3a2Vta2djaWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjkwODIsImV4cCI6MjA5ODI0NTA4Mn0.VCcWo7NaGTLoFoYKdrmsmlmthlSd57S9OLqXfE4Obbc';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── STATE ──
 let DB = { transactions: [], customers: [], settings: { apiKey:'', sender:'0018018949161' } };
 let currentUser = null;
-let isSyncing = false;
-
-// ── TX BADGE ──
-const TX_BADGE = {
-  'واریز':'badge-green','برداشت':'badge-red','کارت شارژ':'badge-blue',
-  'بسته اینترنت':'badge-blue','رسید برگشتی':'badge-amber',
-  'واریز دلاری':'badge-purple','برداشت دلاری':'badge-purple',
-  'حواله تومان به افغانی':'badge-teal',
-};
-
-// ══════════════════════════════════════════
-//  AUTH
-// ══════════════════════════════════════════
 let authMode = 'login';
-function switchTab(mode) {
-  authMode = mode;
-  document.querySelectorAll('.auth-tab').forEach(t => {
-    const isLogin = t.textContent.trim() === 'ورود';
-    const isRegister = t.textContent.trim() === 'ثبت‌نام';
-    t.classList.toggle('active', (mode==='login' && isLogin) || (mode==='register' && isRegister));
-  });
-  document.getElementById('authBtn').textContent = mode==='login' ? 'ورود' : 'ثبت‌نام';
-  document.getElementById('authPassConfirmWrap').style.display = mode==='register' ? 'block' : 'none';
-  document.getElementById('forgotWrap').style.display = mode==='login' ? 'block' : 'none';
-  clearAuthMsg();
-}
-function showAuthMsg(msg, type='error') {
-  const el = document.getElementById('authMsg');
-  el.textContent = msg; el.className = 'auth-msg ' + type;
-}
-function clearAuthMsg() { document.getElementById('authMsg').className = 'auth-msg'; }
 
-async function handleAuth() {
-  const email = document.getElementById('authEmail').value.trim();
-  const pass  = document.getElementById('authPass').value;
-  const btn   = document.getElementById('authBtn');
-  if (!email || !pass) { showAuthMsg('ایمیل و رمز عبور الزامی است'); return; }
-  btn.disabled = true;
-  btn.textContent = authMode==='login' ? 'در حال ورود...' : 'در حال ثبت‌نام...';
-  clearAuthMsg();
+// ── AUTH ──
+function goMode(m) {
+  authMode = m;
+  document.getElementById('btnLogin').className = m==='login' ? 'abtn sel' : 'abtn';
+  document.getElementById('btnReg').className = m==='reg' ? 'abtn sel' : 'abtn';
+  document.getElementById('aMainBtn').textContent = m==='login' ? 'ورود' : 'ثبت‌نام';
+  document.getElementById('aPass2').style.display = m==='reg' ? 'block' : 'none';
+  document.getElementById('aForgot').style.display = m==='login' ? 'block' : 'none';
+  document.getElementById('amsg').className = 'amsg';
+}
+
+function showAmsg(txt, type) {
+  const el = document.getElementById('amsg');
+  el.textContent = txt; el.className = 'amsg ' + type;
+}
+
+async function doLogin() {
+  const email = document.getElementById('aEmail').value.trim();
+  const pass = document.getElementById('aPass').value;
+  const btn = document.getElementById('aMainBtn');
+  if (!email || !pass) { showAmsg('ایمیل و رمز عبور را وارد کنید', 'err'); return; }
+  btn.textContent = '...'; btn.disabled = true;
   try {
-    if (authMode === 'register') {
-      const confirm = document.getElementById('authPassConfirm').value;
-      if (pass !== confirm) { showAuthMsg('رمز عبور و تکرار آن یکسان نیستند'); return; }
-      if (pass.length < 6)  { showAuthMsg('رمز عبور باید حداقل ۶ کاراکتر باشد'); return; }
+    if (authMode === 'reg') {
+      const p2 = document.getElementById('aPass2').value;
+      if (pass !== p2) { showAmsg('رمز عبور و تکرار یکسان نیستند', 'err'); return; }
+      if (pass.length < 6) { showAmsg('رمز حداقل ۶ کاراکتر باشد', 'err'); return; }
       const { error } = await sb.auth.signUp({ email, password: pass });
       if (error) throw error;
-      showAuthMsg('ثبت‌نام موفق! لطفاً ایمیل خود را تأیید کنید.', 'success');
+      showAmsg('ثبت‌نام موفق! اکنون وارد شوید.', 'ok');
+      goMode('login');
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
       if (error) throw error;
@@ -668,24 +663,29 @@ async function handleAuth() {
       enterApp();
     }
   } catch(e) {
-    const msgs = {
-      'Invalid login credentials': 'ایمیل یا رمز عبور اشتباه است',
-      'Email not confirmed': 'لطفاً ایمیل خود را تأیید کنید',
-      'User already registered': 'این ایمیل قبلاً ثبت شده است',
-    };
-    showAuthMsg(msgs[e.message] || e.message);
+    const msgs = {'Invalid login credentials':'ایمیل یا رمز اشتباه است','Email not confirmed':'ایمیل تأیید نشده'};
+    showAmsg(msgs[e.message] || e.message, 'err');
   } finally {
     btn.disabled = false;
     btn.textContent = authMode==='login' ? 'ورود' : 'ثبت‌نام';
   }
 }
 
-async function handleForgot() {
-  const email = document.getElementById('authEmail').value.trim();
-  if (!email) { showAuthMsg('ابتدا ایمیل خود را وارد کنید'); return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email);
-  if (error) showAuthMsg(error.message);
-  else showAuthMsg('لینک بازیابی به ایمیل شما ارسال شد.', 'success');
+async function doForgot() {
+  const email = document.getElementById('aEmail').value.trim();
+  if (!email) { showAmsg('ابتدا ایمیل را وارد کنید', 'err'); return; }
+  await sb.auth.resetPasswordForEmail(email);
+  showAmsg('لینک بازیابی ارسال شد', 'ok');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function enterApp() {
+  document.getElementById('authScreen').className = '';
+  document.getElementById('appScreen').classList.add('visible');
+  document.getElementById('userEmail').textContent = currentUser.email;
+  document.getElementById('userAvatar').textContent = currentUser.email[0].toUpperCase();
+  loadFromSupabase();
 }
 
 async function handleLogout() {
@@ -693,39 +693,14 @@ async function handleLogout() {
   currentUser = null;
   DB = { transactions:[], customers:[], settings:{apiKey:'',sender:'0018018949161'} };
   document.getElementById('appScreen').classList.remove('visible');
-  document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('authEmail').value = '';
-  document.getElementById('authPass').value  = '';
+  document.getElementById('authScreen').className = 'show';
 }
 
-// ── ENTER APP ──
-function enterApp() {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('appScreen').classList.add('visible');
-  const email = currentUser.email;
-  document.getElementById('userEmail').textContent = email;
-  document.getElementById('userAvatar').textContent = email[0].toUpperCase();
-  loadFromSupabase();
-}
-
-// ── CHECK SESSION ON LOAD ──
 sb.auth.getSession().then(({ data: { session } }) => {
   if (session) { currentUser = session.user; enterApp(); }
-  else { document.getElementById('authScreen').style.display = 'flex'; }
 });
 
-// ── AUTH STATE CHANGE ──
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) { currentUser = session.user; }
-});
 
-// Enter key on auth form
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('authScreen').style.display !== 'none') handleAuth();
-});
-
-// ══════════════════════════════════════════
-//  SUPABASE DB
 // ══════════════════════════════════════════
 function setSyncStatus(status) {
   const dot = document.getElementById('syncDot');
@@ -1252,14 +1227,11 @@ function clearAllData() {
   if(!confirm('همه داده‌ها پاک شوند؟'))return;
   DB.transactions=[];DB.customers=[];refreshDashboard();renderTransactions();renderCustomers();toast('همه داده‌ها پاک شد');
 }
-</script>
 
-<!-- SERVICE WORKER REGISTRATION -->
+</script>
 <script>
 if('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  });
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
 }
 </script>
 </body>
