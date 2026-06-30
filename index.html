@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0F2060">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="حسابداری">
+<link rel="manifest" href="manifest.json">
+<title>سیستم حسابداری</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Vazirmatn',sans-serif;background:#F4F6FC;color:#0D1030;min-height:100vh;}
+:root{
+  --navy:#0F2060;--navy2:#1A3A8F;--blue:#2952C4;--blue-l:#EEF2FF;
+  --green:#145A32;--green-l:#E9F7EF;--red:#922B21;--red-l:#FDEDEC;
+  --amber:#D4890A;--amber-l:#FDF3DC;--purple:#5B21B6;--purple-l:#EDE9FE;
+  --teal:#0E7490;--teal-l:#ECFEFF;--border:#D6DCF0;--text2:#3D4A6E;--text3:#8A93B2;
+}
+
+/* ═══════ AUTH ═══════ */
+#authWrap{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0F2060,#1A3A8F,#1e3f7a);z-index:9999;align-items:center;justify-content:center;}
+#authWrap.show{display:flex;}
+.acard{background:#fff;border-radius:20px;padding:36px;width:380px;max-width:94vw;box-shadow:0 24px 80px rgba(0,0,0,.35);}
+.alogo{text-align:center;margin-bottom:22px;}
+.alogo h1{font-size:21px;font-weight:800;color:var(--navy);margin-top:8px;}
+.alogo p{font-size:12px;color:var(--text3);margin-top:3px;}
+.abtnrow{display:flex;gap:10px;margin-bottom:20px;}
+.atab{flex:1;padding:11px;border-radius:10px;font-family:Vazirmatn;font-size:14px;font-weight:700;cursor:pointer;border:2px solid var(--border);background:#fff;color:var(--text3);transition:all .2s;}
+.atab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.amsg{padding:9px 12px;border-radius:8px;font-size:13px;text-align:center;margin-bottom:12px;display:none;}
+.amsg.err{background:var(--red-l);color:var(--red);display:block;}
+.amsg.ok{background:var(--green-l);color:var(--green);display:block;}
+.ainp{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:10px;font-size:14px;font-family:Vazirmatn;margin-bottom:11px;outline:none;direction:ltr;text-align:left;}
+.ainp:focus{border-color:var(--blue);}
+.amainbtn{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:Vazirmatn;transition:opacity .2s;}
+.amainbtn:disabled{opacity:.6;}
+.aforgot{text-align:center;margin-top:11px;font-size:12.5px;color:var(--blue);cursor:pointer;text-decoration:underline;}
+
+/* ═══════ APP ═══════ */
+#appWrap{display:none;}
+#appWrap.show{display:block;}
+.sidebar{width:260px;background:var(--navy);min-height:100vh;position:fixed;right:0;top:0;display:flex;flex-direction:column;z-index:100;transition:transform .25s;}
+.sidebar-logo{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.1);}
+.sidebar-logo h1{color:#fff;font-size:15px;font-weight:700;}
+.sidebar-logo span{color:var(--amber);font-size:11px;}
+.snav{flex:1;padding:10px 0;overflow-y:auto;}
+.nitem{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.6);cursor:pointer;font-size:13.5px;font-weight:500;transition:all .15s;border-right:3px solid transparent;}
+.nitem:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nitem.on{background:rgba(255,255,255,.1);color:#fff;border-right-color:var(--amber);}
+.nitem .ic{font-size:17px;width:22px;text-align:center;}
+.sfooter{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);}
+.uinfo{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.uavatar{width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;flex-shrink:0;}
+.uemail{font-size:11px;color:rgba(255,255,255,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.urole{font-size:10px;color:var(--amber);font-weight:600;}
+.blogout{width:100%;padding:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);border-radius:8px;font-family:Vazirmatn;font-size:12px;cursor:pointer;}
+.blogout:hover{background:rgba(255,255,255,.12);color:#fff;}
+.main{margin-right:260px;min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:13px 26px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;}
+.hamburger{display:none;flex-direction:column;gap:5px;padding:6px;background:none;border:none;cursor:pointer;}
+.hamburger span{display:block;width:22px;height:2px;background:var(--navy);border-radius:2px;}
+.tbtitle{flex:1;}
+.tbtitle h2{font-size:17px;font-weight:700;color:var(--navy);}
+.tbtitle p{font-size:11.5px;color:var(--text3);margin-top:2px;}
+.syncbar{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text3);padding:6px 26px;background:#fff;border-bottom:1px solid var(--border);}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;}
+.sdot.ok{background:#4ade80;}
+.sdot.go{background:var(--amber);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.content{padding:22px 26px;flex:1;}
+.page{display:none;}
+.page.on{display:block;}
+.soverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;}
+
+/* ═══════ CARDS / TABLES ═══════ */
+.card{background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:18px;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.card-title{font-size:14px;font-weight:700;color:var(--navy);}
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+.kcard{background:#fff;border-radius:12px;padding:18px;border:1px solid var(--border);}
+.klabel{font-size:11px;color:var(--text3);font-weight:600;margin-bottom:6px;}
+.kval{font-size:20px;font-weight:800;color:var(--navy);}
+.kval.g{color:var(--green)}.kval.r{color:var(--red)}.kval.p{color:var(--purple)}.kval.t{color:var(--teal)}
+.kbadge{display:inline-block;margin-top:6px;font-size:10.5px;padding:2px 8px;border-radius:20px;font-weight:600;}
+.kbadge.g{background:var(--green-l);color:var(--green);}
+.kbadge.r{background:var(--red-l);color:var(--red);}
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--navy);color:#D6E0F8;padding:11px 13px;font-size:11.5px;font-weight:600;text-align:right;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:hover{background:var(--blue-l);}
+tbody tr:last-child{border:none;}
+tbody td{padding:10px 13px;font-size:12.5px;}
+.erow td{text-align:center;color:var(--text3);padding:28px;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;}
+.bg{background:var(--green-l);color:var(--green);}
+.br{background:var(--red-l);color:var(--red);}
+.bb{background:var(--blue-l);color:var(--blue);}
+.ba{background:var(--amber-l);color:var(--amber);}
+.bp{background:var(--purple-l);color:var(--purple);}
+.bt{background:var(--teal-l);color:var(--teal);}
+.bgr{background:#F1F5F9;color:#64748B;}
+
+/* ═══════ FORMS ═══════ */
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;padding:18px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:11.5px;font-weight:600;color:var(--text2);}
+.fg input,.fg select,.fg textarea{padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:Vazirmatn;font-size:13px;color:#0D1030;background:#fff;outline:none;transition:border-color .15s;text-align:right;}
+.fg input:focus,.fg select:focus{border-color:var(--blue);}
+.ffoot{padding:13px 18px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-family:Vazirmatn;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-p{background:var(--blue);color:#fff;}.btn-p:hover{background:var(--navy2);}
+.btn-g{background:var(--green);color:#fff;}
+.btn-d{background:var(--red);color:#fff;}
+.btn-o{background:#fff;color:var(--navy);border:1.5px solid var(--border);}.btn-o:hover{background:var(--blue-l);}
+.btn-sm{padding:6px 11px;font-size:11.5px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.searchinp{padding:8px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:Vazirmatn;font-size:13px;outline:none;width:200px;}
+.searchinp:focus{border-color:var(--blue);}
+
+/* ═══════ INVOICE ═══════ */
+.inv-hdr{background:var(--navy);color:#fff;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;}
+.inv-shdr{background:var(--blue-l);color:var(--navy);padding:9px 18px;font-size:12.5px;font-weight:700;border-top:1px solid var(--border);}
+.inv-grid{display:grid;gap:0;}
+.inv-cell{padding:13px 18px;border-left:1px solid var(--border);border-bottom:1px solid var(--border);}
+.inv-cell:last-child{border-left:none;}
+.inv-cl{font-size:10.5px;color:var(--text3);font-weight:600;margin-bottom:4px;}
+.inv-cv{font-size:14px;font-weight:700;color:var(--navy);}
+
+/* ═══════ PROFILE ═══════ */
+.profile-box{background:#fff;border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:18px;}
+.profile-avatar-big{width:80px;height:80px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700;margin:0 auto 16px;}
+.profile-name{text-align:center;font-size:20px;font-weight:700;color:var(--navy);}
+.profile-email{text-align:center;font-size:13px;color:var(--text3);margin-top:4px;}
+.profile-role{text-align:center;margin-top:8px;}
+
+/* ═══════ ADMIN ═══════ */
+.admin-badge{background:var(--amber-l);color:var(--amber);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.user-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap;}
+.user-card-info{min-width:200px;}
+.user-card-avatar{width:44px;height:44px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;flex-shrink:0;}
+.user-card-info{flex:1;}
+.user-card-email{font-size:13px;font-weight:600;color:var(--navy);}
+.user-card-meta{font-size:11.5px;color:var(--text3);margin-top:2px;}
+
+/* ═══════ MODAL ═══════ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:16px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;max-height:90vh;overflow-y:auto;}
+.modal-hdr{background:var(--navy);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;}
+.modal-hdr h3{color:#fff;font-size:14px;font-weight:700;}
+.modal-x{color:rgba(255,255,255,.6);cursor:pointer;font-size:20px;line-height:1;}
+.modal-body{padding:20px;}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
+
+/* ═══════ TOAST ═══════ */
+.toasts{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center;}
+.toast{padding:10px 20px;border-radius:10px;font-size:13.5px;font-weight:600;background:var(--navy);color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.2);animation:tin .2s ease;}
+.toast.ok{background:var(--green);}
+.toast.err{background:var(--red);}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════ RESPONSIVE ═══════ */
+@media(max-width:768px){
+  .sidebar{transform:translateX(100%);}
+  .sidebar.open{transform:translateX(0);}
+  .soverlay.open{display:block;}
+  .main{margin-right:0;}
+  .hamburger{display:flex;}
+  .krow{grid-template-columns:1fr 1fr!important;}
+  .fgrid{grid-template-columns:1fr!important;}
+  .hm{display:none!important;}
+  .content{padding:14px;}
+  .topbar{padding:11px 16px;}
+  .kval{font-size:16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ AUTH ═══════ -->
+<div id="authWrap" class="show">
+  <div class="acard">
+    <div class="alogo">
+      <div style="font-size:46px;">📊</div>
+      <h1>سیستم حسابداری</h1>
+      <p>مدیریت مالی و مشتریان</p>
+    </div>
+    <div class="abtnrow">
+      <button class="atab on" id="tabLogin" onclick="goMode('login')">ورود</button>
+      <button class="atab" id="tabReg" onclick="goMode('reg')">ثبت‌نام</button>
+    </div>
+    <div id="amsg" class="amsg"></div>
+    <input class="ainp" type="email" id="aEmail" placeholder="ایمیل شما" autocomplete="email">
+    <input class="ainp" type="password" id="aPass" placeholder="رمز عبور (حداقل ۶ کاراکتر)" autocomplete="current-password">
+    <input class="ainp" type="password" id="aPass2" placeholder="تکرار رمز عبور" style="display:none;" autocomplete="new-password">
+    <button class="amainbtn" id="aBtn" onclick="doAuth()">ورود</button>
+    <div class="aforgot" id="aForgot" onclick="doForgot()">فراموشی رمز عبور</div>
+  </div>
+</div>
+
+<!-- ═══════ APP ═══════ -->
+<div id="appWrap">
+<div class="soverlay" id="soverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h1>📊 سیستم حسابداری</h1>
+    <span id="sideVersion">نسخه ۲.۰</span>
+  </div>
+  <nav class="snav" id="snav">
+    <div class="nitem on" onclick="goPage('dashboard')"><span class="ic">📈</span>داشبورد</div>
+    <div class="nitem" onclick="goPage('transactions')"><span class="ic">📋</span>تراکنش‌ها</div>
+    <div class="nitem" onclick="goPage('customers')"><span class="ic">👥</span>مشتریان</div>
+    <div class="nitem" onclick="goPage('invoice')"><span class="ic">🧾</span>صورت‌حساب</div>
+    <div class="nitem" onclick="goPage('profile')"><span class="ic">👤</span>پروفایل</div>
+    <div class="nitem" id="adminNavItem" style="display:none;" onclick="goPage('admin')"><span class="ic">🛡️</span>پنل ادمین</div>
+    <div class="nitem" onclick="goPage('settings')"><span class="ic">⚙️</span>تنظیمات</div>
+  </nav>
+  <div class="sfooter">
+    <div class="uinfo">
+      <div class="uavatar" id="uAvatar">؟</div>
+      <div style="flex:1;overflow:hidden;">
+        <div class="uemail" id="uEmail">...</div>
+        <div class="urole" id="uRole"></div>
+      </div>
+    </div>
+    <button class="blogout" onclick="doLogout()">🚪 خروج</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <div class="tbtitle">
+      <h2 id="ptitle">داشبورد</h2>
+      <p id="psub">خلاصه مالی</p>
+    </div>
+    <button class="btn btn-p btn-sm" onclick="goPage('transactions')">+ تراکنش</button>
+  </div>
+  <div class="syncbar">
+    <div class="sdot" id="sdot"></div>
+    <span id="stext">در حال بارگذاری...</span>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page on" id="page-dashboard">
+      <div class="krow">
+        <div class="kcard"><div class="klabel">مانده ریالی</div><div class="kval" id="k-bal">۰</div><span class="kbadge g" id="k-bal-b">تسویه</span></div>
+        <div class="kcard"><div class="klabel">مانده دلاری ($)</div><div class="kval p" id="k-dol">۰</div><span class="kbadge" style="background:var(--purple-l);color:var(--purple);">دلار</span></div>
+        <div class="kcard"><div class="klabel">حواله افغانی</div><div class="kval t" id="k-afg">۰</div><span class="kbadge" style="background:var(--teal-l);color:var(--teal);">افغانی</span></div>
+        <div class="kcard"><div class="klabel">مشتریان</div><div class="kval" id="k-cust">۰</div><span class="kbadge g">فعال</span></div>
+      </div>
+      <div class="krow">
+        <div class="kcard"><div class="klabel">جمع واریزی</div><div class="kval g" id="k-in">۰</div></div>
+        <div class="kcard"><div class="klabel">جمع برداشت</div><div class="kval r" id="k-out">۰</div></div>
+        <div class="kcard"><div class="klabel">کارت شارژ + اینترنت</div><div class="kval" id="k-ch">۰</div></div>
+        <div class="kcard"><div class="klabel">رسید برگشتی</div><div class="kval r" id="k-ret">۰</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">آخرین تراکنش‌ها</div></div>
+        <table><thead><tr><th>تاریخ</th><th>مشتری</th><th>نوع</th><th>مبلغ</th><th>وضعیت</th></tr></thead>
+        <tbody id="dashTx"><tr class="erow"><td colspan="5">هنوز تراکنشی ثبت نشده</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="page" id="page-transactions">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">ثبت تراکنش جدید</div></div>
+        <div class="fgrid">
+          <div class="fg"><label>تاریخ</label><input type="text" id="tx-date" placeholder="۱۴۰۳/۰۱/۰۱" maxlength="10" inputmode="numeric" oninput="autoDate(this)"></div>
+          <div class="fg"><label>ساعت</label><input type="text" id="tx-time" placeholder="۰۹:۳۰" maxlength="5" inputmode="numeric" oninput="autoTime(this)"></div>
+          <div class="fg"><label>نوع تراکنش</label>
+            <select id="tx-type">
+              <option value="">انتخاب کنید</option>
+              <optgroup label="ریالی"><option>واریز</option><option>برداشت</option><option>کارت شارژ</option><option>بسته اینترنت</option><option>رسید برگشتی</option></optgroup>
+              <optgroup label="دلاری"><option>واریز دلاری</option><option>برداشت دلاری</option></optgroup>
+              <optgroup label="ارزی"><option>حواله تومان به افغانی</option></optgroup>
+            </select>
+          </div>
+          <div class="fg"><label>مبلغ</label><input type="text" id="tx-amount" placeholder="مثال: ۵,۰۰۰,۰۰۰" inputmode="numeric" oninput="autoAmt(this)" style="direction:ltr;text-align:left;"></div>
+          <div class="fg"><label>واحد</label><select id="tx-cur"><option>ریال</option><option>دلار</option><option>افغانی</option></select></div>
+          <div class="fg"><label>بانک</label>
+            <select id="tx-bank">
+              <option value="">انتخاب کنید</option>
+              <option>بلوبانک</option><option>صادرات</option><option>ملی</option><option>تجارت</option><option>پارسیان</option><option>سامان</option><option>رفاه</option><option>مسکن</option><option>کشاورزی</option><option>سپه</option>
+            </select>
+          </div>
+          <div class="fg"><label>کد پیگیری</label><input type="text" id="tx-code" placeholder="کد رسید" oninput="chkDup(this)"></div>
+          <div class="fg"><label>مشتری</label><select id="tx-cust"><option value="">بدون مشتری</option></select></div>
+          <div class="fg"><label>توضیحات</label><input type="text" id="tx-desc" placeholder="اختیاری"></div>
+          <div class="fg" style="grid-column:1/-1;">
+            <label>تصویر رسید (اختیاری)</label>
+            <div style="border:2px dashed var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:#fafbff;" onclick="document.getElementById('tx-receipt-file').click()">
+              <input type="file" id="tx-receipt-file" accept="image/*" style="display:none;" onchange="uploadReceipt(this)">
+              <span id="receiptLabel" style="font-size:12.5px;color:var(--text3);">📎 برای آپلود عکس رسید کلیک کنید</span>
+            </div>
+            <img id="receiptPreview" style="max-width:140px;border-radius:8px;margin-top:8px;display:none;">
+            <input type="hidden" id="tx-receipt-url">
+          </div>
+        </div>
+        <div id="dupWarn" style="display:none;background:var(--amber-l);color:var(--amber);padding:8px 18px;font-size:12px;font-weight:600;">⚠️ این کد پیگیری قبلاً ثبت شده!</div>
+        <div class="ffoot">
+          <button class="btn btn-o" onclick="clearTx()">پاک کردن</button>
+          <button class="btn btn-p" onclick="addTx()">💾 ذخیره تراکنش</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">لیست تراکنش‌ها</div>
+          <input class="searchinp" placeholder="جستجو..." oninput="filterTx(this.value)">
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>#</th><th>تاریخ</th><th class="hm">ساعت</th><th>نوع</th><th>مبلغ</th><th>واحد</th><th class="hm">بانک</th><th class="hm">رسید</th><th>مشتری</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <tbody id="txTable"><tr class="erow"><td colspan="11">هنوز تراکنشی ثبت نشده</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="page" id="page-customers">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">افزودن مشتری</div></div>
+        <div class="fgrid">
+          <div class="fg"><label>نام مشتری</label><input type="text" id="c-name" placeholder="نام و نام خانوادگی"></div>
+          <div class="fg"><label>نام پدر</label><input type="text" id="c-father" placeholder="نام پدر"></div>
+          <div class="fg"><label>شماره تماس</label><input type="text" id="c-phone" style="direction:ltr;text-align:left;"></div>
+          <div class="fg"><label>توضیح</label><input type="text" id="c-note" placeholder="اختیاری"></div>
+        </div>
+        <div class="ffoot"><button class="btn btn-p" onclick="addCust()">+ افزودن مشتری</button></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">لیست مشتریان</div><input class="searchinp" placeholder="جستجو..." oninput="filterCust(this.value)"></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>#</th><th>نام</th><th>تلفن</th><th>واریز</th><th>برداشت</th><th>مانده ریال</th><th>مانده دلار</th><th>افغانی</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <tbody id="custTable"><tr class="erow"><td colspan="10">هنوز مشتری ثبت نشده</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICE -->
+    <div class="page" id="page-invoice">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">صورت‌حساب مشتری</div></div>
+        <div style="padding:14px 18px;display:flex;gap:12px;align-items:flex-end;">
+          <div class="fg" style="flex:1;"><label>انتخاب مشتری</label><select id="inv-cust" onchange="loadInv()"><option value="">انتخاب کنید</option></select></div>
+          <button class="btn btn-sm" style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;" id="smsBtn" onclick="openSms()" disabled>📱 پیامک</button>
+        </div>
+      </div>
+      <div id="invContent" style="display:none;">
+        <div class="card">
+          <div class="inv-hdr">
+            <div><h2>🧾 صورت‌حساب</h2><span id="invDate" style="font-size:12px;opacity:.7;"></span></div>
+            <div style="text-align:left;"><div style="font-size:20px;font-weight:800;" id="invName"></div><div style="font-size:12px;opacity:.7;" id="invPhone"></div></div>
+          </div>
+          <div class="inv-shdr">💰 تراکنش‌های ریالی</div>
+          <div class="inv-grid" style="grid-template-columns:repeat(4,1fr);">
+            <div class="inv-cell"><div class="inv-cl">واریزی</div><div class="inv-cv" id="ii-in">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">برداشت</div><div class="inv-cv" id="ii-out">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">کارت شارژ</div><div class="inv-cv" id="ii-ch">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">اینترنت</div><div class="inv-cv" id="ii-net">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">برگشتی</div><div class="inv-cv" id="ii-ret">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">مانده ریال</div><div class="inv-cv" id="ii-bal">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">وضعیت</div><div class="inv-cv" id="ii-st">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">تعداد</div><div class="inv-cv" id="ii-cnt">—</div></div>
+          </div>
+          <div class="inv-shdr">💵 تراکنش‌های دلاری</div>
+          <div class="inv-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="inv-cell"><div class="inv-cl">واریز $</div><div class="inv-cv" id="ii-din">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">برداشت $</div><div class="inv-cv" id="ii-dout">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">مانده $</div><div class="inv-cv" id="ii-dbal">—</div></div>
+          </div>
+          <div class="inv-shdr">🏴 حواله افغانی</div>
+          <div class="inv-grid" style="grid-template-columns:repeat(2,1fr);">
+            <div class="inv-cell"><div class="inv-cl">جمع حواله</div><div class="inv-cv" id="ii-afg">—</div></div>
+            <div class="inv-cell"><div class="inv-cl">تعداد حواله</div><div class="inv-cv" id="ii-afgcnt">—</div></div>
+          </div>
+          <div class="inv-shdr">📋 جزئیات</div>
+          <table>
+            <thead><tr><th>#</th><th>تاریخ</th><th>ساعت</th><th>نوع</th><th>مبلغ</th><th>واحد</th><th>بانک</th><th>رسید</th><th>توضیح</th></tr></thead>
+            <tbody id="invTable"><tr class="erow"><td colspan="9">تراکنشی یافت نشد</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="profile-box" style="text-align:center;">
+        <div class="profile-avatar-big" id="profAvatar">؟</div>
+        <div class="profile-name" id="profName">—</div>
+        <div class="profile-email" id="profEmail">—</div>
+        <div class="profile-role" id="profRole"></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">تغییر ایمیل</div></div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:12px;max-width:400px;">
+          <div class="fg"><label>ایمیل جدید</label><input type="email" id="newEmail" placeholder="ایمیل جدید" class="ainp" style="margin:0;direction:ltr;text-align:left;"></div>
+          <button class="btn btn-p" onclick="changeEmail()">📧 تغییر ایمیل</button>
+          <p style="font-size:11.5px;color:var(--text3);">پس از تغییر، یک ایمیل تأیید به آدرس جدید ارسال می‌شود.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">تغییر رمز عبور</div></div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:12px;max-width:400px;">
+          <div class="fg"><label>رمز عبور جدید</label><input type="password" id="newPass" placeholder="حداقل ۶ کاراکتر" class="ainp" style="margin:0;"></div>
+          <div class="fg"><label>تکرار رمز جدید</label><input type="password" id="newPass2" placeholder="تکرار رمز" class="ainp" style="margin:0;"></div>
+          <button class="btn btn-p" onclick="changePass()">🔑 تغییر رمز عبور</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="page" id="page-admin">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">🛡️ پنل مدیریت کاربران</div>
+          <span class="admin-badge">ادمین</span>
+        </div>
+        <div style="padding:18px;">
+          <div id="adminUsersList"><div style="color:var(--text3);font-size:13px;">در حال بارگذاری...</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">📊 آمار کلی سیستم</div></div>
+        <div class="fgrid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="fg" style="gap:4px;"><label>کل کاربران</label><div style="font-size:24px;font-weight:800;color:var(--navy);" id="adm-users">—</div></div>
+          <div class="fg" style="gap:4px;"><label>کل تراکنش‌ها</label><div style="font-size:24px;font-weight:800;color:var(--blue);" id="adm-txs">—</div></div>
+          <div class="fg" style="gap:4px;"><label>کل مشتریان</label><div style="font-size:24px;font-weight:800;color:var(--green);" id="adm-custs">—</div></div>
+        </div>
+        <div class="ffoot">
+          <button class="btn btn-p" onclick="admExport()">📤 بک‌آپ کامل سیستم</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">⚙️ تنظیمات</div></div>
+        <div style="padding:18px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);">🔑 پیامک (کاوه‌نگار)</div>
+          <div style="display:flex;flex-direction:column;gap:12px;max-width:400px;margin-bottom:20px;">
+            <div class="fg"><label>API Key</label><input type="password" id="set-key" class="ainp" style="margin:0;" placeholder="کلید API"></div>
+            <div class="fg"><label>شماره فرستنده</label><input type="text" id="set-sender" class="ainp" style="margin:0;direction:ltr;text-align:left;" placeholder="0018018949161"></div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-p" onclick="saveSettings()">💾 ذخیره</button>
+              <button class="btn btn-o" onclick="testSms()">🔌 تست</button>
+            </div>
+          </div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);">💾 بک‌آپ</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-p" onclick="expData()">📤 دانلود بک‌آپ</button>
+            <label class="btn btn-o" style="cursor:pointer;">📥 بازیابی<input type="file" accept=".json" onchange="impData(event)" style="display:none;"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<!-- SMS MODAL -->
+<div class="modal-bg" id="smsModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3>📱 ارسال پیامک</h3><span class="modal-x" onclick="closeSms()">✕</span></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="fg"><label>گیرنده</label><input type="text" id="sms-to" class="ainp" style="margin:0;"></div>
+      <div class="fg"><label>متن</label><textarea id="sms-txt" rows="10" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-family:Vazirmatn;font-size:13px;resize:vertical;outline:none;" oninput="document.getElementById('smscc').textContent=this.value.length+' کاراکتر'"></textarea><div id="smscc" style="font-size:11px;color:var(--text3);text-align:left;margin-top:4px;">۰ کاراکتر</div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-o" onclick="closeSms()">انصراف</button>
+      <button class="btn btn-p" onclick="sendSms()" id="smsSendBtn">📤 ارسال</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TX MODAL -->
+<div class="modal-bg" id="editTxModal">
+  <div class="modal" style="width:580px;">
+    <div class="modal-hdr"><h3>✏️ ویرایش تراکنش</h3><span class="modal-x" onclick="closeEditTx()">✕</span></div>
+    <div class="modal-body">
+      <input type="hidden" id="etx-id">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <div class="fg"><label>تاریخ</label><input type="text" id="etx-date" maxlength="10" inputmode="numeric" oninput="autoDate(this)"></div>
+        <div class="fg"><label>ساعت</label><input type="text" id="etx-time" maxlength="5" inputmode="numeric" oninput="autoTime(this)"></div>
+        <div class="fg"><label>نوع</label><select id="etx-type"><option value="">انتخاب</option><option>واریز</option><option>برداشت</option><option>کارت شارژ</option><option>بسته اینترنت</option><option>رسید برگشتی</option><option>واریز دلاری</option><option>برداشت دلاری</option><option>حواله تومان به افغانی</option></select></div>
+        <div class="fg"><label>مبلغ</label><input type="text" id="etx-amount" oninput="autoAmt(this)" style="direction:ltr;text-align:left;"></div>
+        <div class="fg"><label>واحد</label><select id="etx-cur"><option>ریال</option><option>دلار</option><option>افغانی</option></select></div>
+        <div class="fg"><label>بانک</label><select id="etx-bank"><option value="">—</option><option>بلوبانک</option><option>صادرات</option><option>ملی</option><option>تجارت</option><option>پارسیان</option><option>سامان</option><option>رفاه</option><option>مسکن</option><option>کشاورزی</option><option>سپه</option></select></div>
+        <div class="fg"><label>کد رسید</label><input type="text" id="etx-code"></div>
+        <div class="fg"><label>مشتری</label><select id="etx-cust"><option value="">بدون مشتری</option></select></div>
+        <div class="fg"><label>توضیح</label><input type="text" id="etx-desc"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-o" onclick="closeEditTx()">انصراف</button>
+      <button class="btn btn-p" onclick="saveEditTx()">💾 ذخیره</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CUST MODAL -->
+<div class="modal-bg" id="editCustModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3>✏️ ویرایش مشتری</h3><span class="modal-x" onclick="closeEditCust()">✕</span></div>
+    <div class="modal-body" style="display:grid;grid-template-columns:1fr 1fr;gap:13px;">
+      <input type="hidden" id="ec-id">
+      <div class="fg"><label>نام</label><input type="text" id="ec-name"></div>
+      <div class="fg"><label>نام پدر</label><input type="text" id="ec-father"></div>
+      <div class="fg"><label>تلفن</label><input type="text" id="ec-phone" style="direction:ltr;text-align:left;"></div>
+      <div class="fg"><label>توضیح</label><input type="text" id="ec-note"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-o" onclick="closeEditCust()">انصراف</button>
+      <button class="btn btn-p" onclick="saveEditCust()">💾 ذخیره</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════
+const SURL = 'https://mrzvnhvmfwwkemkgciil.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yenZuaHZtZnd3a2Vta2djaWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjkwODIsImV4cCI6MjA5ODI0NTA4Mn0.VCcWo7NaGTLoFoYKdrmsmlmthlSd57S9OLqXfE4Obbc';
+const ADMIN_EMAIL = 'mohammadebrahimmiri80@gmail.com'; // ایمیل ادمین
+const sb = supabase.createClient(SURL, SKEY);
+
+let user = null;
+let isAdmin = false;
+let DB = { txs:[], custs:[], settings:{apiKey:'',sender:''} };
+let authMode = 'login';
+
+// ═══════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════
+function goMode(m) {
+  authMode = m;
+  document.getElementById('tabLogin').className = m==='login' ? 'atab on' : 'atab';
+  document.getElementById('tabReg').className = m==='reg' ? 'atab on' : 'atab';
+  document.getElementById('aBtn').textContent = m==='login' ? 'ورود' : 'ثبت‌نام';
+  document.getElementById('aPass2').style.display = m==='reg' ? 'block' : 'none';
+  document.getElementById('aForgot').style.display = m==='login' ? 'block' : 'none';
+  document.getElementById('amsg').className = 'amsg';
+}
+
+function showAmsg(t,type) { const e=document.getElementById('amsg'); e.textContent=t; e.className='amsg '+type; }
+
+async function doAuth() {
+  const email = document.getElementById('aEmail').value.trim();
+  const pass  = document.getElementById('aPass').value;
+  const btn   = document.getElementById('aBtn');
+  if (!email||!pass) { showAmsg('ایمیل و رمز عبور الزامی است','err'); return; }
+  btn.disabled=true; btn.textContent='...';
+  try {
+    if (authMode==='reg') {
+      const p2 = document.getElementById('aPass2').value;
+      if (pass!==p2) { showAmsg('رمز عبور و تکرار یکسان نیستند','err'); return; }
+      if (pass.length<6) { showAmsg('رمز حداقل ۶ کاراکتر باشد','err'); return; }
+      const {error} = await sb.auth.signUp({email,password:pass});
+      if (error) throw error;
+      showAmsg('ثبت‌نام موفق! اکنون وارد شوید.','ok');
+      goMode('login');
+    } else {
+      const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+      if (error) throw error;
+      user = data.user;
+      enterApp();
+    }
+  } catch(e) {
+    const m={'Invalid login credentials':'ایمیل یا رمز اشتباه است','Email not confirmed':'ایمیل تأیید نشده','User already registered':'این ایمیل قبلاً ثبت شده','User is banned':'دسترسی شما مسدود شده — با ادمین تماس بگیرید'};
+    showAmsg(m[e.message]||e.message,'err');
+  } finally { btn.disabled=false; btn.textContent=authMode==='login'?'ورود':'ثبت‌نام'; }
+}
+
+async function doForgot() {
+  const email = document.getElementById('aEmail').value.trim();
+  if (!email) { showAmsg('ابتدا ایمیل را وارد کنید','err'); return; }
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: window.location.href});
+  if (error) showAmsg(error.message,'err');
+  else showAmsg('لینک بازیابی ارسال شد ✓','ok');
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  user=null; isAdmin=false;
+  DB={txs:[],custs:[],settings:{apiKey:'',sender:''}};
+  document.getElementById('appWrap').className='';
+  document.getElementById('authWrap').className='show';
+  document.getElementById('aEmail').value='';
+  document.getElementById('aPass').value='';
+}
+
+async function changePass() {
+  const p1=document.getElementById('newPass').value;
+  const p2=document.getElementById('newPass2').value;
+  if (!p1||p1.length<6) { toast('رمز حداقل ۶ کاراکتر باشد','err'); return; }
+  if (p1!==p2) { toast('رمز و تکرار یکسان نیستند','err'); return; }
+  const {error} = await sb.auth.updateUser({password:p1});
+  if (error) toast(error.message,'err');
+  else { toast('رمز عبور تغییر یافت ✓','ok'); document.getElementById('newPass').value=''; document.getElementById('newPass2').value=''; }
+}
+
+async function changeEmail() {
+  const newEmail = document.getElementById('newEmail').value.trim();
+  if (!newEmail || !newEmail.includes('@')) { toast('ایمیل معتبر وارد کنید','err'); return; }
+  const {error} = await sb.auth.updateUser({email:newEmail});
+  if (error) toast(error.message,'err');
+  else { toast('ایمیل تأیید به آدرس جدید ارسال شد ✓','ok'); document.getElementById('newEmail').value=''; }
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Enter' && document.getElementById('authWrap').classList.contains('show')) doAuth(); });
+
+// ═══════════════════════════════════════
+//  APP INIT
+// ═══════════════════════════════════════
+function enterApp() {
+  isAdmin = user.email === ADMIN_EMAIL;
+  document.getElementById('authWrap').className='';
+  document.getElementById('appWrap').className='show';
+  const av = user.email[0].toUpperCase();
+  document.getElementById('uAvatar').textContent=av;
+  document.getElementById('uEmail').textContent=user.email;
+  document.getElementById('uRole').textContent=isAdmin?'👑 ادمین':'کاربر';
+  document.getElementById('profAvatar').textContent=av;
+  document.getElementById('profEmail').textContent=user.email;
+  document.getElementById('profName').textContent=user.email.split('@')[0];
+  document.getElementById('profRole').innerHTML=isAdmin?'<span class="admin-badge">👑 ادمین سیستم</span>':'';
+  if(isAdmin) { document.getElementById('adminNavItem').style.display='flex'; }
+  loadData();
+}
+
+sb.auth.getSession().then(({data:{session}})=>{ if(session){user=session.user;enterApp();} });
+sb.auth.onAuthStateChange((ev,session)=>{ if(ev==='PASSWORD_RECOVERY') toast('رمز جدید را وارد کنید','ok'); });
+
+// ═══════════════════════════════════════
+//  SYNC
+// ═══════════════════════════════════════
+function setSyncing(s) {
+  const dot=document.getElementById('sdot'), txt=document.getElementById('stext');
+  if(s==='go'){dot.className='sdot go';txt.textContent='در حال ذخیره...';}
+  else if(s==='ok'){dot.className='sdot ok';txt.textContent='همه تغییرات ذخیره شد ✓';}
+  else{dot.className='sdot';txt.textContent='خطا در اتصال';}
+}
+
+async function loadData() {
+  setSyncing('go');
+  try {
+    const uid=user.id;
+    const [{data:txs},{data:custs},{data:sets}] = await Promise.all([
+      sb.from('transactions').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+      sb.from('customers').select('*').eq('user_id',uid).order('created_at',{ascending:true}),
+      sb.from('settings').select('*').eq('user_id',uid).single(),
+    ]);
+    DB.txs = (txs||[]).map(r=>({...r.data,_id:r.id}));
+    DB.custs = (custs||[]).map(r=>({...r.data,_id:r.id}));
+    if(sets) DB.settings = sets.data||DB.settings;
+    document.getElementById('set-key').value=DB.settings.apiKey||'';
+    document.getElementById('set-sender').value=DB.settings.sender||'';
+    renderAll();
+    setSyncing('ok');
+  } catch(e){setSyncing('err');console.error(e);}
+}
+
+async function saveTxDB(tx) {
+  setSyncing('go');
+  try {
+    if(tx._new) {
+      const {data,error}=await sb.from('transactions').insert({user_id:user.id,data:cleanTx(tx)}).select().single();
+      if(error)throw error;
+      tx._id=data.id; delete tx._new;
+    } else {
+      const {error}=await sb.from('transactions').update({data:cleanTx(tx)}).eq('id',tx._id).eq('user_id',user.id);
+      if(error)throw error;
+    }
+    setSyncing('ok');
+  } catch(e){setSyncing('err');toast('خطا: '+e.message,'err');}
+}
+
+async function delTxDB(id) {
+  setSyncing('go');
+  await sb.from('transactions').delete().eq('id',id).eq('user_id',user.id);
+  setSyncing('ok');
+}
+
+async function saveCustDB(c) {
+  setSyncing('go');
+  try {
+    if(c._new) {
+      const {data,error}=await sb.from('customers').insert({user_id:user.id,data:cleanCust(c)}).select().single();
+      if(error)throw error;
+      c._id=data.id; delete c._new;
+    } else {
+      const {error}=await sb.from('customers').update({data:cleanCust(c)}).eq('id',c._id).eq('user_id',user.id);
+      if(error)throw error;
+    }
+    setSyncing('ok');
+  } catch(e){setSyncing('err');toast('خطا: '+e.message,'err');}
+}
+
+async function delCustDB(id) {
+  setSyncing('go');
+  await sb.from('customers').delete().eq('id',id).eq('user_id',user.id);
+  setSyncing('ok');
+}
+
+async function saveSettingsDB() {
+  setSyncing('go');
+  const uid=user.id;
+  const {data:ex}=await sb.from('settings').select('id').eq('user_id',uid).single();
+  if(ex) await sb.from('settings').update({data:DB.settings}).eq('user_id',uid);
+  else await sb.from('settings').insert({user_id:uid,data:DB.settings});
+  setSyncing('ok');
+}
+
+function cleanTx(t){const {_id,_new,...r}=t;return r;}
+function cleanCust(c){const {_id,_new,...r}=c;return r;}
+
+// ═══════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════
+const PAGES={
+  dashboard:['داشبورد','خلاصه مالی'],
+  transactions:['تراکنش‌ها','ثبت و مدیریت'],
+  customers:['مشتریان','مدیریت مشتریان'],
+  invoice:['صورت‌حساب','صورت اختصاصی'],
+  profile:['پروفایل','اطلاعات حساب'],
+  admin:['پنل ادمین','مدیریت سیستم'],
+  settings:['تنظیمات','پیکربندی'],
+};
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.className='page');
+  document.getElementById('page-'+name).className='page on';
+  document.querySelectorAll('.nitem').forEach((n,i)=>{
+    n.className=Object.keys(PAGES)[i]===name?'nitem on':'nitem';
+  });
+  document.getElementById('ptitle').textContent=PAGES[name][0];
+  document.getElementById('psub').textContent=PAGES[name][1];
+  if(name==='dashboard')renderDash();
+  if(name==='transactions'){renderTxs();fillCustSel('tx-cust','');}
+  if(name==='customers')renderCusts();
+  if(name==='invoice')fillInvSel();
+  if(name==='admin'&&isAdmin)loadAdmin();
+  closeSidebar();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('soverlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('soverlay').classList.remove('open');}
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+const TXBADGE={'واریز':'bg','برداشت':'br','کارت شارژ':'bb','بسته اینترنت':'bb','رسید برگشتی':'ba','واریز دلاری':'bp','برداشت دلاری':'bp','حواله تومان به افغانی':'bt'};
+function fa(n,u=''){return Number(n).toLocaleString('fa-IR')+(u?' '+u:'');}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function toast(msg,type=''){
+  const c=document.getElementById('toasts'),t=document.createElement('div');
+  t.className='toast '+(type==='ok'?'ok':type==='err'?'err':'');
+  t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500);
+}
+function autoDate(el){
+  let v=el.value.replace(/[^\d]/g,'');
+  if(v.length>4&&v.length<=6)v=v.slice(0,4)+'/'+v.slice(4);
+  else if(v.length>6)v=v.slice(0,4)+'/'+v.slice(4,6)+'/'+v.slice(6,8);
+  el.value=v;
+}
+function autoTime(el){
+  let v=el.value.replace(/[^\d]/g,'');
+  if(v.length>2)v=v.slice(0,2)+':'+v.slice(2,4);
+  el.value=v;
+}
+function autoAmt(el){
+  let v=el.value.replace(/,/g,'').replace(/[^\d]/g,'');
+  if(v)el.value=Number(v).toLocaleString('en');
+}
+function chkDup(el){
+  const code=el.value.trim();
+  const warn=document.getElementById('dupWarn');
+  if(code&&DB.txs.find(t=>t.code===code)){warn.style.display='block';}
+  else warn.style.display='none';
+}
+function getStatus(tx){
+  if(!tx.date||!tx.amount)return '';
+  if(tx.type==='رسید برگشتی')return 'برگشت';
+  if(tx.code&&DB.txs.filter(t=>t.code===tx.code&&t._id!==tx._id).length>0)return 'تکراری';
+  return 'معتبر';
+}
+
+// ═══════════════════════════════════════
+//  TRANSACTIONS
+// ═══════════════════════════════════════
+function getStats(name){
+  const txs=DB.txs.filter(t=>t.customer===name&&getStatus(t)==='معتبر');
+  const s=(type)=>txs.filter(t=>t.type===type).reduce((a,t)=>a+(+t.amount||0),0);
+  const inc=s('واریز'),exp=s('برداشت'),ch=s('کارت شارژ'),net=s('بسته اینترنت'),ret=s('رسید برگشتی');
+  const din=s('واریز دلاری'),dout=s('برداشت دلاری'),afg=s('حواله تومان به افغانی');
+  const balR=inc-exp-ch-net-ret,balD=din-dout;
+  return{inc,exp,ch,net,ret,din,dout,afg,afgCnt:txs.filter(t=>t.type==='حواله تومان به افغانی').length,balR,balD,stR:balR>0?'طلبکار':balR<0?'بدهکار':'تسویه',cnt:txs.length};
+}
+
+async function addTx(){
+  const type=document.getElementById('tx-type').value;
+  const amount=parseFloat(document.getElementById('tx-amount').value.replace(/,/g,'')||0);
+  if(!type||!amount){toast('نوع و مبلغ الزامی است','err');return;}
+  const code=document.getElementById('tx-code').value.trim();
+  if(code&&DB.txs.find(t=>t.code===code)){toast('کد پیگیری تکراری است!','err');return;}
+  const tx={
+    _new:true,
+    date:document.getElementById('tx-date').value.trim(),
+    time:document.getElementById('tx-time').value.trim(),
+    type,amount,
+    currency:document.getElementById('tx-cur').value,
+    bank:document.getElementById('tx-bank').value,
+    code,
+    customer:document.getElementById('tx-cust').value,
+    desc:document.getElementById('tx-desc').value.trim(),
+    receiptUrl:document.getElementById('tx-receipt-url').value||'',
+  };
+  DB.txs.unshift(tx);
+  clearTx();renderTxs();renderDash();
+  toast('تراکنش ثبت شد ✓','ok');
+  await saveTxDB(tx);
+}
+
+// آپلود تصویر رسید با سرویس رایگان imgbb
+const IMGBB_KEY = ''; // کلید رایگان از api.imgbb.com بگیر و اینجا بذار
+async function uploadReceipt(input){
+  const file=input.files[0];if(!file)return;
+  if(!IMGBB_KEY){toast('برای آپلود عکس باید کلید imgbb تنظیم شود','err');return;}
+  const label=document.getElementById('receiptLabel');
+  label.textContent='⏳ در حال آپلود...';
+  try{
+    const fd=new FormData();
+    fd.append('image',file);
+    const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.success){
+      document.getElementById('tx-receipt-url').value=d.data.url;
+      document.getElementById('receiptPreview').src=d.data.url;
+      document.getElementById('receiptPreview').style.display='block';
+      label.textContent='✅ آپلود شد - برای تغییر کلیک کنید';
+      toast('عکس رسید آپلود شد ✓','ok');
+    } else throw new Error(d.error?.message||'خطا');
+  }catch(e){label.textContent='❌ خطا - دوباره تلاش کنید';toast('خطا در آپلود: '+e.message,'err');}
+}
+
+function clearTx(){
+  ['tx-date','tx-time','tx-amount','tx-code','tx-desc'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('tx-type').value='';
+  document.getElementById('tx-cur').value='ریال';
+  document.getElementById('tx-bank').value='';
+  document.getElementById('tx-cust').value='';
+  document.getElementById('dupWarn').style.display='none';
+  document.getElementById('tx-receipt-url').value='';
+  document.getElementById('tx-receipt-file').value='';
+  document.getElementById('receiptPreview').style.display='none';
+  document.getElementById('receiptLabel').textContent='📎 برای آپلود عکس رسید کلیک کنید';
+}
+
+async function delTx(id){
+  if(!confirm('حذف شود؟'))return;
+  const tx=DB.txs.find(t=>t._id===id);
+  DB.txs=DB.txs.filter(t=>t._id!==id);
+  renderTxs();renderDash();toast('حذف شد');
+  await delTxDB(id);
+}
+
+function filterTx(q){renderTxs(q);}
+function renderTxs(filter=''){
+  const tb=document.getElementById('txTable');
+  let txs=DB.txs;
+  if(filter)txs=txs.filter(t=>(t.customer||'').includes(filter)||(t.type||'').includes(filter)||(t.code||'').includes(filter));
+  if(!txs.length){tb.innerHTML='<tr class="erow"><td colspan="11">تراکنشی یافت نشد</td></tr>';return;}
+  tb.innerHTML=txs.map((t,i)=>{
+    const st=getStatus(t);
+    const sc=st==='معتبر'?'bg':st==='تکراری'?'ba':st==='برگشت'?'br':'bgr';
+    return`<tr><td>${i+1}</td><td>${t.date||'—'}</td><td class="hm">${t.time||'—'}</td>
+    <td><span class="badge ${TXBADGE[t.type]||'bgr'}">${t.type}</span></td>
+    <td style="direction:ltr;text-align:left;">${Number(t.amount).toLocaleString('fa-IR')}</td><td>${t.currency||'ریال'}</td>
+    <td class="hm">${t.bank||'—'}</td><td class="hm">${t.code||'—'}</td>
+    <td>${t.customer||'—'}</td>
+    <td>${st?`<span class="badge ${sc}">${st}</span>`:'—'}</td>
+    <td style="display:flex;gap:4px;">
+      ${t.receiptUrl?`<a href="${t.receiptUrl}" target="_blank" class="btn btn-o btn-sm" style="color:var(--green);">🖼</a>`:''}
+      <button class="btn btn-o btn-sm" style="color:var(--blue);" onclick="openEditTx('${t._id}')">✏️</button>
+      <button class="btn btn-d btn-sm" onclick="delTx('${t._id}')">🗑</button>
+    </td></tr>`;
+  }).join('');
+}
+
+function openEditTx(id){
+  const t=DB.txs.find(x=>x._id===id);if(!t)return;
+  document.getElementById('etx-id').value=t._id;
+  document.getElementById('etx-date').value=t.date||'';
+  document.getElementById('etx-time').value=t.time||'';
+  document.getElementById('etx-type').value=t.type||'';
+  document.getElementById('etx-amount').value=t.amount?Number(t.amount).toLocaleString('en'):'';
+  document.getElementById('etx-cur').value=t.currency||'ریال';
+  document.getElementById('etx-bank').value=t.bank||'';
+  document.getElementById('etx-code').value=t.code||'';
+  document.getElementById('etx-desc').value=t.desc||'';
+  fillCustSel('etx-cust',t.customer||'');
+  document.getElementById('editTxModal').className='modal-bg open';
+}
+function closeEditTx(){document.getElementById('editTxModal').className='modal-bg';}
+async function saveEditTx(){
+  const id=document.getElementById('etx-id').value;
+  const t=DB.txs.find(x=>x._id===id);if(!t)return;
+  t.date=document.getElementById('etx-date').value;
+  t.time=document.getElementById('etx-time').value;
+  t.type=document.getElementById('etx-type').value;
+  t.amount=parseFloat(document.getElementById('etx-amount').value.replace(/,/g,'')||0);
+  t.currency=document.getElementById('etx-cur').value;
+  t.bank=document.getElementById('etx-bank').value;
+  t.code=document.getElementById('etx-code').value;
+  t.customer=document.getElementById('etx-cust').value;
+  t.desc=document.getElementById('etx-desc').value;
+  closeEditTx();renderTxs();renderDash();toast('ویرایش شد ✓','ok');
+  await saveTxDB(t);
+}
+
+// ═══════════════════════════════════════
+//  CUSTOMERS
+// ═══════════════════════════════════════
+async function addCust(){
+  const name=document.getElementById('c-name').value.trim();
+  if(!name){toast('نام الزامی است','err');return;}
+  if(DB.custs.find(c=>c.name===name)){toast('این مشتری قبلاً ثبت شده','err');return;}
+  const c={_new:true,name,father:document.getElementById('c-father').value.trim(),phone:document.getElementById('c-phone').value.trim(),note:document.getElementById('c-note').value.trim()};
+  DB.custs.push(c);
+  ['c-name','c-father','c-phone','c-note'].forEach(i=>document.getElementById(i).value='');
+  renderCusts();fillCustSel('tx-cust','');toast('مشتری اضافه شد ✓','ok');
+  await saveCustDB(c);
+}
+
+async function delCust(id){
+  if(!confirm('حذف شود؟'))return;
+  DB.custs=DB.custs.filter(c=>c._id!==id);
+  renderCusts();fillCustSel('tx-cust','');
+  await delCustDB(id);
+}
+
+function filterCust(q){renderCusts(q);}
+function renderCusts(filter=''){
+  const tb=document.getElementById('custTable');
+  let custs=DB.custs;
+  if(filter)custs=custs.filter(c=>c.name.includes(filter)||(c.phone||'').includes(filter));
+  if(!custs.length){tb.innerHTML='<tr class="erow"><td colspan="10">هنوز مشتری ثبت نشده</td></tr>';return;}
+  tb.innerHTML=custs.map((c,i)=>{
+    const s=getStats(c.name);
+    const sc=s.balR>0?'bg':s.balR<0?'br':'bgr';
+    return`<tr><td>${i+1}</td>
+    <td><strong>${c.name}</strong>${c.father?'<br><small style="color:var(--text3);">پدر: '+c.father+'</small>':''}</td>
+    <td style="direction:ltr;text-align:left;">${c.phone||'—'}</td>
+    <td>${fa(s.inc)}</td><td>${fa(s.exp)}</td>
+    <td><strong>${fa(s.balR)}</strong></td>
+    <td style="color:var(--purple);font-weight:700;">${fa(s.balD)} $</td>
+    <td style="color:var(--teal);">${fa(s.afg)}</td>
+    <td><span class="badge ${sc}">${s.stR}</span></td>
+    <td style="display:flex;gap:4px;flex-wrap:wrap;">
+      <button class="btn btn-o btn-sm" onclick="openInvForCust('${c.name}')">🧾</button>
+      <button class="btn btn-o btn-sm" style="color:var(--blue);" onclick="openEditCust('${c._id}')">✏️</button>
+      <button class="btn btn-d btn-sm" onclick="delCust('${c._id}')">حذف</button>
+    </td></tr>`;
+  }).join('');
+}
+
+function openEditCust(id){
+  const c=DB.custs.find(x=>x._id===id);if(!c)return;
+  document.getElementById('ec-id').value=c._id;
+  document.getElementById('ec-name').value=c.name||'';
+  document.getElementById('ec-father').value=c.father||'';
+  document.getElementById('ec-phone').value=c.phone||'';
+  document.getElementById('ec-note').value=c.note||'';
+  document.getElementById('editCustModal').className='modal-bg open';
+}
+function closeEditCust(){document.getElementById('editCustModal').className='modal-bg';}
+async function saveEditCust(){
+  const id=document.getElementById('ec-id').value;
+  const c=DB.custs.find(x=>x._id===id);if(!c)return;
+  c.name=document.getElementById('ec-name').value.trim();
+  c.father=document.getElementById('ec-father').value.trim();
+  c.phone=document.getElementById('ec-phone').value.trim();
+  c.note=document.getElementById('ec-note').value.trim();
+  closeEditCust();renderCusts();fillCustSel('tx-cust','');toast('ویرایش شد ✓','ok');
+  await saveCustDB(c);
+}
+
+function fillCustSel(selId,selected){
+  const s=document.getElementById(selId);
+  s.innerHTML='<option value="">بدون مشتری</option>'+DB.custs.map(c=>`<option value="${c.name}"${c.name===selected?' selected':''}>${c.name}</option>`).join('');
+}
+
+// ═══════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════
+function renderDash(){
+  let totIn=0,totOut=0,totCh=0,totAfg=0,totDin=0,totDout=0,totRet=0;
+  DB.txs.forEach(t=>{
+    if(getStatus(t)!=='معتبر')return;
+    const a=+t.amount||0;
+    if(t.type==='واریز')totIn+=a;
+    else if(t.type==='برداشت')totOut+=a;
+    else if(t.type==='کارت شارژ'||t.type==='بسته اینترنت')totCh+=a;
+    else if(t.type==='رسید برگشتی')totRet+=a;
+    else if(t.type==='واریز دلاری')totDin+=a;
+    else if(t.type==='برداشت دلاری')totDout+=a;
+    else if(t.type==='حواله تومان به افغانی')totAfg+=a;
+  });
+  const balR=totIn-totOut-totCh-totRet,balD=totDin-totDout;
+  document.getElementById('k-bal').textContent=fa(balR);
+  document.getElementById('k-dol').textContent=fa(balD)+' $';
+  document.getElementById('k-afg').textContent=fa(totAfg);
+  document.getElementById('k-cust').textContent=DB.custs.length.toLocaleString('fa-IR');
+  document.getElementById('k-in').textContent=fa(totIn);
+  document.getElementById('k-out').textContent=fa(totOut);
+  document.getElementById('k-ch').textContent=fa(totCh);
+  document.getElementById('k-ret').textContent=fa(totRet);
+  const bb=document.getElementById('k-bal-b');
+  bb.textContent=balR>0?'طلبکار':balR<0?'بدهکار':'تسویه';
+  bb.className='kbadge '+(balR>=0?'g':'r');
+  const tb=document.getElementById('dashTx');
+  const recent=DB.txs.slice(0,8);
+  if(!recent.length){tb.innerHTML='<tr class="erow"><td colspan="5">هنوز تراکنشی ثبت نشده</td></tr>';return;}
+  tb.innerHTML=recent.map(t=>{const st=getStatus(t);return`<tr><td>${t.date||'—'}</td><td>${t.customer||'—'}</td><td><span class="badge ${TXBADGE[t.type]||'bgr'}">${t.type}</span></td><td>${fa(t.amount)} ${t.currency||'ریال'}</td><td>${st?`<span class="badge ${st==='معتبر'?'bg':st==='تکراری'?'ba':'br'}">${st}</span>`:'—'}</td></tr>`;}).join('');
+}
+
+function renderAll(){renderDash();renderTxs();renderCusts();fillInvSel();fillCustSel('tx-cust','');}
+
+// ═══════════════════════════════════════
+//  INVOICE
+// ═══════════════════════════════════════
+function fillInvSel(){
+  const s=document.getElementById('inv-cust'),cur=s.value;
+  s.innerHTML='<option value="">انتخاب کنید</option>'+DB.custs.map(c=>`<option value="${c.name}"${c.name===cur?' selected':''}>${c.name}</option>`).join('');
+  if(cur)loadInv();
+}
+function openInvForCust(name){goPage('invoice');setTimeout(()=>{document.getElementById('inv-cust').value=name;loadInv();},100);}
+function loadInv(){
+  const name=document.getElementById('inv-cust').value;
+  const smsBtn=document.getElementById('smsBtn');
+  if(!name){document.getElementById('invContent').style.display='none';smsBtn.disabled=true;return;}
+  const c=DB.custs.find(x=>x.name===name);
+  const s=getStats(name);
+  document.getElementById('invName').textContent=name;
+  document.getElementById('invPhone').textContent=c?.phone||'';
+  document.getElementById('invDate').textContent='تاریخ: '+new Date().toLocaleDateString('fa-IR');
+  document.getElementById('ii-in').textContent=fa(s.inc,'ریال');
+  document.getElementById('ii-out').textContent=fa(s.exp,'ریال');
+  document.getElementById('ii-ch').textContent=fa(s.ch,'ریال');
+  document.getElementById('ii-net').textContent=fa(s.net,'ریال');
+  document.getElementById('ii-ret').textContent=fa(s.ret,'ریال');
+  document.getElementById('ii-bal').textContent=fa(s.balR,'ریال');
+  document.getElementById('ii-st').textContent=s.stR==='طلبکار'?'✅ طلبکار':s.stR==='بدهکار'?'🔴 بدهکار':'⚪ تسویه';
+  document.getElementById('ii-cnt').textContent=s.cnt+' تراکنش';
+  document.getElementById('ii-din').textContent=fa(s.din,'$');
+  document.getElementById('ii-dout').textContent=fa(s.dout,'$');
+  document.getElementById('ii-dbal').textContent=fa(s.balD,'$');
+  document.getElementById('ii-afg').textContent=fa(s.afg,'ریال');
+  document.getElementById('ii-afgcnt').textContent=s.afgCnt+' حواله';
+  const txs=DB.txs.filter(t=>t.customer===name);
+  document.getElementById('invTable').innerHTML=!txs.length?'<tr class="erow"><td colspan="9">تراکنشی یافت نشد</td></tr>':txs.map((t,i)=>`<tr><td>${i+1}</td><td>${t.date||'—'}</td><td>${t.time||'—'}</td><td><span class="badge ${TXBADGE[t.type]||'bgr'}">${t.type}</span></td><td>${fa(t.amount)}</td><td>${t.currency||'ریال'}</td><td>${t.bank||'—'}</td><td>${t.code||'—'}</td><td>${t.desc||'—'}</td></tr>`).join('');
+  document.getElementById('invContent').style.display='block';
+  smsBtn.disabled=!c?.phone;
+}
+
+// ═══════════════════════════════════════
+//  SMS
+// ═══════════════════════════════════════
+function openSms(){
+  const name=document.getElementById('inv-cust').value;
+  const c=DB.custs.find(x=>x.name===name);
+  const s=getStats(name);
+  const n=x=>fa(x);
+  let lines=[name+' عزیز 🌟','━━━━━━━━━━━━━━','📊 وضعیت حساب:'];
+  if(s.inc>0)lines.push('• واریزی: '+n(s.inc)+' ریال');
+  if(s.exp>0)lines.push('• برداشت: '+n(s.exp)+' ریال');
+  if(s.ch>0)lines.push('• کارت شارژ: '+n(s.ch)+' ریال');
+  if(s.ret>0)lines.push('• برگشتی: '+n(s.ret)+' ریال');
+  lines.push('• مانده: '+n(Math.abs(s.balR))+' ریال ('+s.stR+')');
+  if(s.balD!==0)lines.push('• مانده دلار: '+n(Math.abs(s.balD))+' $');
+  if(s.afg>0)lines.push('• حواله افغانی: '+n(s.afg)+' ریال');
+  lines.push('━━━━━━━━━━━━━━');
+  document.getElementById('sms-to').value=c?.phone||'';
+  document.getElementById('sms-txt').value=lines.join('\n');
+  document.getElementById('smscc').textContent=lines.join('\n').length+' کاراکتر';
+  document.getElementById('smsModal').className='modal-bg open';
+}
+function closeSms(){document.getElementById('smsModal').className='modal-bg';}
+async function sendSms(){
+  const to=document.getElementById('sms-to').value.trim();
+  const txt=document.getElementById('sms-txt').value.trim();
+  const key=DB.settings.apiKey,sender=DB.settings.sender||'0018018949161';
+  if(!key){toast('API Key در تنظیمات وارد نشده','err');return;}
+  if(!to){toast('شماره گیرنده وارد کنید','err');return;}
+  const btn=document.getElementById('smsSendBtn');btn.disabled=true;btn.textContent='...';
+  try{
+    const r=await fetch(`https://api.kavenegar.com/v1/${encodeURIComponent(key)}/sms/send.json`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({receptor:to,message:txt,sender})});
+    const d=await r.json();
+    if(d.return?.status===200){toast('پیامک ارسال شد ✓','ok');closeSms();}
+    else toast('خطا: '+(d.return?.message||'نامشخص'),'err');
+  }catch{toast('خطا در اتصال','err');}
+  finally{btn.disabled=false;btn.textContent='📤 ارسال';}
+}
+
+// ═══════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════
+async function saveSettings(){
+  DB.settings.apiKey=document.getElementById('set-key').value.trim();
+  DB.settings.sender=document.getElementById('set-sender').value.trim();
+  toast('ذخیره شد ✓','ok');
+  await saveSettingsDB();
+}
+async function testSms(){
+  const key=document.getElementById('set-key').value.trim();
+  if(!key){toast('API Key وارد کنید','err');return;}
+  try{const r=await fetch(`https://api.kavenegar.com/v1/${encodeURIComponent(key)}/account/info.json`);const d=await r.json();if(d.return?.status===200)toast('✅ اتصال موفق','ok');else toast('❌ '+d.return?.message,'err');}catch{toast('خطا در اتصال','err');}
+}
+function expData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='backup-'+new Date().toLocaleDateString('fa-IR').replace(/\//g,'-')+'.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);toast('بک‌آپ دانلود شد ✓','ok');
+}
+async function impData(event){
+  const file=event.target.files[0];if(!file)return;
+  if(!confirm('داده‌های فعلی جایگزین می‌شوند. ادامه؟')){event.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      const imp=JSON.parse(e.target.result);
+      if(!imp.txs&&!imp.transactions){toast('فایل معتبر نیست','err');return;}
+      DB.txs=imp.txs||imp.transactions||[];
+      DB.custs=imp.custs||imp.customers||[];
+      DB.settings=imp.settings||{};
+      renderAll();toast('بک‌آپ بارگذاری شد ✓','ok');
+    }catch{toast('خطا در خواندن فایل','err');}
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════
+let adminUsersCache = [];
+
+async function loadAdmin(){
+  if(!isAdmin)return;
+  const list=document.getElementById('adminUsersList');
+  list.innerHTML='<div style="color:var(--text3);font-size:13px;">در حال بارگذاری...</div>';
+  try{
+    const {data:usersData,error:usersErr} = await sb.rpc('get_all_users_for_admin');
+    if(usersErr) throw usersErr;
+    adminUsersCache = usersData||[];
+
+    const allTxs=await sb.from('transactions').select('user_id');
+    const allCusts=await sb.from('customers').select('user_id');
+
+    document.getElementById('adm-txs').textContent=(allTxs.data||[]).length.toLocaleString('fa-IR');
+    document.getElementById('adm-custs').textContent=(allCusts.data||[]).length.toLocaleString('fa-IR');
+    document.getElementById('adm-users').textContent=adminUsersCache.length.toLocaleString('fa-IR');
+
+    const byUser={};
+    (allTxs.data||[]).forEach(r=>{byUser[r.user_id]=byUser[r.user_id]||{txs:0,custs:0};byUser[r.user_id].txs++;});
+    (allCusts.data||[]).forEach(r=>{byUser[r.user_id]=byUser[r.user_id]||{txs:0,custs:0};byUser[r.user_id].custs++;});
+
+    if(!adminUsersCache.length){list.innerHTML='<div style="color:var(--text3);font-size:13px;">هنوز کاربری ثبت نشده</div>';return;}
+
+    list.innerHTML=adminUsersCache.map(u=>{
+      const info=byUser[u.id]||{txs:0,custs:0};
+      const isMe=u.id===user.id;
+      const joinDate=new Date(u.created_at).toLocaleDateString('fa-IR');
+      const lastLogin=u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString('fa-IR'):'هنوز وارد نشده';
+      const isBanned=u.banned_until && new Date(u.banned_until) > new Date();
+      return`<div class="user-card" style="${isBanned?'opacity:.6;border-color:var(--red);':''}">
+        <div class="user-card-avatar">${isMe?'👑':isBanned?'🚫':'👤'}</div>
+        <div class="user-card-info">
+          <div class="user-card-email">${u.email} ${isMe?'<span class="admin-badge">شما</span>':''} ${isBanned?'<span class="badge br">مسدود</span>':''}</div>
+          <div class="user-card-meta">${info.txs} تراکنش · ${info.custs} مشتری · عضویت: ${joinDate}</div>
+          <div class="user-card-meta">آخرین ورود: ${lastLogin}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-o btn-sm" onclick="admResetPass('${u.email}')">🔑 ریست رمز</button>
+          ${!isMe?`<button class="btn ${isBanned?'btn-g':'btn-o'} btn-sm" onclick="admToggleBan('${u.id}',${!isBanned})">${isBanned?'✅ فعال‌سازی':'🚫 مسدود کردن'}</button>`:''}
+          ${!isMe?`<button class="btn btn-d btn-sm" onclick="admDeleteUserData('${u.id}','${u.email}')">🗑 حذف داده</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    console.error(e);
+    list.innerHTML='<div style="color:var(--red);font-size:13px;">خطا: '+e.message+'<br><small style="color:var(--text3);">باید SQL تابع get_all_users_for_admin را در Supabase اجرا کرده باشید</small></div>';
+  }
+}
+
+async function admToggleBan(uid,shouldBan){
+  const action=shouldBan?'مسدود':'فعال';
+  if(!confirm('این کاربر '+action+' شود؟'))return;
+  try{
+    const {error}=await sb.rpc('admin_toggle_user_ban',{target_user_id:uid,should_ban:shouldBan});
+    if(error)throw error;
+    toast('کاربر '+action+' شد ✓','ok');
+    loadAdmin();
+  }catch(e){toast('خطا: '+e.message,'err');}
+}
+
+async function admResetPass(email){
+  if(!confirm('لینک بازیابی رمز برای '+email+' ارسال شود؟'))return;
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: window.location.href});
+  if(error) toast('خطا: '+error.message,'err');
+  else toast('لینک بازیابی ارسال شد ✓','ok');
+}
+
+async function admDeleteUserData(uid,email){
+  if(!confirm('تمام تراکنش‌ها و مشتریان '+email+' حذف شوند؟ این عمل برگشت‌پذیر نیست!'))return;
+  setSyncing('go');
+  try{
+    await sb.from('transactions').delete().eq('user_id',uid);
+    await sb.from('customers').delete().eq('user_id',uid);
+    toast('داده‌های کاربر حذف شد ✓','ok');
+    loadAdmin();
+    setSyncing('ok');
+  }catch(e){toast('خطا: '+e.message,'err');setSyncing('err');}
+}
+
+async function admExport(){
+  setSyncing('go');
+  try{
+    const [{data:txs},{data:custs}]=await Promise.all([
+      sb.from('transactions').select('*'),
+      sb.from('customers').select('*'),
+    ]);
+    const blob=new Blob([JSON.stringify({transactions:txs,customers:custs,users:adminUsersCache,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='system-backup-'+Date.now()+'.json';a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    toast('بک‌آپ کامل دانلود شد ✓','ok');
+    setSyncing('ok');
+  }catch(e){toast('خطا: '+e.message,'err');setSyncing('err');}
+}
+</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+</body>
+</html>
